@@ -18,3 +18,4 @@ jdauphant.nginx
 .pytest_cache
 __pycache__
 run_molecule_*
+docker-271613-bf1d38124250.json
