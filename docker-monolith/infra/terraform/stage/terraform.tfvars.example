@@ -1,0 +1,3 @@
+project         = "infra-9999"
+public_key_path = "/root/.ssh/appuser.pub"
+private_key     = "/root/.ssh/appuser"

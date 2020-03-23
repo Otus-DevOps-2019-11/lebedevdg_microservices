@@ -1,0 +1,7 @@
+{
+  "project_id": "docker-253571636413",
+  "source_image_family": "ubuntu-1604-lts",
+  "machine_type": "n1-standard-1",
+  "zone": "europe-north1-b",
+  "playbook_file": "ansible/playbooks/packer_microservices-docker.yml",
+}
