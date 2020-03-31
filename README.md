@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Otus-DevOps-2019-11/lebedevdg_microservices.svg?branch=master)](https://travis-ci.com/Otus-DevOps-2019-11/lebedevdg_microservices)
+
 # lebedevdg_microservices
 lebedevdg microservices repository
 
