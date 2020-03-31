@@ -1,0 +1,5 @@
+---
+# defaults file for app
+
+env: local
+deploy_user: appuser

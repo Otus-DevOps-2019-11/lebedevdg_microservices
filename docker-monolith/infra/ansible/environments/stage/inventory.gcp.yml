@@ -1,0 +1,17 @@
+plugin: gcp_compute
+zones:
+    - europe-north1-b
+projects:
+    - docker-271613
+service_account_file: /root/lebedevdg_microservices/docker-monolith/infra/ansible/docker-271613-bf1d38124250.json
+auth_kind: serviceaccount
+keyed_groups: null
+groups:
+    dockerhost: '''docker-'' in name'
+filters: 'status = RUNNING'
+hostnames:
+    - name
+compose:
+    ansible_host: 'networkInterfaces[0].accessConfigs[0].natIP'
+    internal_ip: 'networkInterfaces[0].networkIP'
+strict: true

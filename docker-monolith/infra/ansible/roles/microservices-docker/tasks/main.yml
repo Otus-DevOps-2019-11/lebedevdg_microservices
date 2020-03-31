@@ -1,0 +1,7 @@
+---
+# tasks file for app
+- name: Show info about the env this host belongs to test
+  debug:
+    msg: "This host is in {{ env }} environment!!! internal ip {{ ansible_all_ipv4_addresses }} external ip {{ ansible_ssh_host }}"
+
+- include: install-docker.yml

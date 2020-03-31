@@ -1,0 +1,21 @@
+---
+- name: Check && install python
+  hosts: all
+  become: true
+  gather_facts: False
+
+  tasks:
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python || test -e /usr/bin/python3 || apt -y update && apt install -y python-minimal python-pip
+      changed_when: False
+
+    - name: Check docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Install python docker module
+      pip:
+        name: docker
+        state: present

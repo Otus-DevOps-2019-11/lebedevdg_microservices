@@ -1,0 +1,24 @@
+---
+- name: Deploy App
+  hosts: all
+  become: true
+  tags: deploy
+
+  tasks:
+    - debug:
+        var: image_to_run
+
+    - name: Pull docker image
+      docker_image:
+        name: "{{ image_to_run | default('lebedevdg/otus-reddit:1.0') }}"
+        source: pull
+        state: present
+
+    - name: Create docker container
+      docker_container:
+        name: "{{ container_name | default('reddit') }}"
+        image: "{{ image_to_run | default('lebedevdg/otus-reddit:1.0') }}"
+        detach: yes
+        published_ports:
+          - 9292:9292
+        state: started
