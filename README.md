@@ -51,3 +51,81 @@ docker push lebedevdg/otus-reddit:1.0
 ```
 
   - packer сборка образа docker-base VM с установленным docker; провижининг выполняется с помощью ansible
+
+
+## ДЗ №2
+
+
+# Переопределение переменных ENV
+
+Файл с переменными /root/lebedevdg_microservices/src/.env
+
+Содержимое:
+
+COMMENT_DATABASE_HOST=comment_db2
+COMMENT_DATABASE=comments2
+
+POST_DATABASE_HOST=post_db2
+POST_DATABASE=posts2
+
+POST_SERVICE_HOST=post2
+POST_SERVICE_PORT=5000
+COMMENT_SERVICE_HOST=comment2
+COMMENT_SERVICE_PORT=9292
+
+
+# Запуск новых контейнеров с измененными переменными
+
+
+docker run -d --network=reddit \
+--network-alias=comment2 --env-file=.env lebedevdg/comment:1.0
+
+
+docker run -d --network=reddit \
+-p 9292:9292 --env-file=.env lebedevdg/ui:1.0
+
+
+docker run -d --network=reddit \
+--network-alias=post2 --env-file=.env lebedevdg/post:1.0
+
+docker run -d --network=reddit \
+--network-alias=post_db2 --network-alias=comment_db mongo:latest
+
+
+# Собран образ для ui на основе alpine с оптимизацией сборки.
+
+
+FROM ruby:2.2-alpine
+
+ENV APP_HOME /app
+WORKDIR $APP_HOME
+
+COPY . $APP_HOME
+
+RUN apk --no-cache --update add build-base=0.4-r1 && \
+    bundle instal && \
+    apk del build-base
+
+ENV POST_SERVICE_HOST post
+ENV POST_SERVICE_PORT 5000
+ENV COMMENT_SERVICE_HOST comment
+ENV COMMENT_SERVICE_PORT 9292
+
+CMD ["puma"]
+
+
+# Контейнеры запущены с новым образом ui и volume
+
+docker run -d --network=reddit \
+--network-alias=comment2 --env-file=.env lebedevdg/comment:1.0
+
+
+docker run -d --network=reddit \
+-p 9292:9292 --env-file=.env lebedevdg/ui:1.9
+
+
+docker run -d --network=reddit \
+--network-alias=post2 --env-file=.env lebedevdg/post:1.0
+
+docker run -d --network=reddit \
+--network-alias=post_db2 --network-alias=comment_db -v reddit_db:/data/db mongo:latest
