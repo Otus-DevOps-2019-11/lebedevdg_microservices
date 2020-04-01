@@ -56,8 +56,3 @@ production:
   environment:
     name: production
     url: https://example.com
-
-deploy_job:
-  stage: deploy
-  script:
-    - echo 'Deploy'
