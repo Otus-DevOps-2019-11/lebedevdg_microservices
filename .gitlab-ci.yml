@@ -3,6 +3,7 @@ image: ruby:2.4.2
 stages:
   - build
   - test
+  - review
   - deploy
 
 build_job:
@@ -28,6 +29,15 @@ test_integration_job:
   stage: test
   script:
     - echo 'Testing 2'
+
+deploy_dev_job:
+  stage: review
+  script:
+    - echo 'Deploy'
+  environment:
+    name: dev
+    url: http://dev.example.com
+
 
 deploy_job:
   stage: deploy
