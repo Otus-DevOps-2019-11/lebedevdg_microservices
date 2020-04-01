@@ -1,0 +1,60 @@
+version: '3.3'
+
+services:
+  mongo_db:
+    image: mongo:${MONGO_VERSION:-3.2}
+    volumes:
+      - mongo_db:/data/db
+    networks:
+      back_net:
+        aliases:
+          - post_db
+          - comment_db
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: ${UI_DOCKERFILE:-Dockerfile}
+    image: ${DH_USERNAME:-$USER}/ui:${UI_VERSION:-1.1}
+    ports:
+      - ${UI_PUBLISHED_PORT:-9292}:9292/tcp
+    networks:
+      - front_net
+    depends_on:
+      - post
+      - comment
+
+  post:
+    build:
+      context: ./post-py
+      dockerfile: ${POST_DOCKERFILE:-Dockerfile}
+    image: ${DH_USERNAME:-$USER}/post:${POST_VERSION:-1.0}
+    networks:
+      - back_net
+      - front_net
+    depends_on:
+      - mongo_db
+
+  comment:
+    build:
+      context: ./comment
+      dockerfile: ${COMMENT_DOCKERFILE:-Dockerfile}
+    image: ${DH_USERNAME:-$USER}/comment:${COMMENT_VERSION:-1.0}
+    networks:
+      - back_net
+      - front_net
+    depends_on:
+      - mongo_db
+
+volumes:
+  mongo_db:
+
+networks:
+  back_net:
+    ipam:
+      config:
+        - subnet: ${BACK_SUBNET:-10.0.2.0/24}
+  front_net:
+    ipam:
+      config:
+        - subnet: ${FRONT_SUBNET:-10.0.1.0/24}
