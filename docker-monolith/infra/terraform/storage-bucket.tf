@@ -7,7 +7,7 @@ provider "google" {
 module "storage-bucket" {
   source  = "SweetOps/storage-bucket/google"
   version = "0.3.0"
-  name          = "storage-bucket-docker-271613"
+  name          = "storage-bucket-docker2-272817"
   location      = var.region
   force_destroy = true
 }

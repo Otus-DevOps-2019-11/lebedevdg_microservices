@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Otus-DevOps-2019-11/lebedevdg_microservices.svg?branch=master)](https://travis-ci.com/Otus-DevOps-2019-11/lebedevdg_microservices)
+
 # lebedevdg_microservices
 lebedevdg microservices repository
 
@@ -129,3 +131,56 @@ docker run -d --network=reddit \
 
 docker run -d --network=reddit \
 --network-alias=post_db2 --network-alias=comment_db -v reddit_db:/data/db mongo:latest
+
+
+## ДЗ №3
+
+- изучены варианты сетей в Docker
+
+- проект запущен в двух bridge сетях
+
+```
+# создание сетей
+docker network create back_net --subnet=10.0.2.0/24
+docker network create front_net --subnet=10.0.1.0/24
+
+# запуск контейнеров
+docker run -d --network=back_net --name mongo_db --network-alias=post_db --network-alias=comment_db --volume reddit_db:/data/db mongo:latest
+docker run -d --network=back_net --name post lebedevdg/post:2.0
+docker run -d --network=back_net --name comment lebedevdg/comment:2.0
+docker run -d --network=front_net -p 9292:9292 --name ui lebedevdg/ui:3.0
+
+# подключение нужных контейнеров ко второй сети
+docker network connect front_net post
+docker network connect front_net comment
+```
+
+- написан compose файл; освоена работа с утилитой docker-compose
+
+- compose файл дополнительно параметризован и изменен под кейс с двумя сетями; значения параметров в .env файле
+
+```
+# валидация compose файла
+docker-compose config
+# создание и старт контейнеров
+docker-compose up -d
+```
+
+- изучены способы задания базового имени проекта для compose:
+
+  - через переменную окружения COMPOSE_PROJECT_NAME
+  - через запуск docker-compose с флагом -p
+
+- (*) создан override compose файл, в котором:
+
+  - подключен volume с кодом приложения внутрь контейнера
+  - puma запущена в debug режиме с двумя worker
+
+```
+# создание и старт контейнеров
+# будет подхвачен и docker-compose.override.yml
+# для корректной работы папки с кодом, которые мапятся внутрь контейнеров, должны существовать на docker host
+docker-compose up -d
+# создание и старт контейнеров без применения docker-compose.override.yml
+docker-compose -f docker-compose.yml up -d
+```

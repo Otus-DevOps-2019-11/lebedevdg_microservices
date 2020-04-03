@@ -2,7 +2,7 @@ plugin: gcp_compute
 zones:
     - europe-north1-b
 projects:
-    - docker-271613
+    - docker2-272817
 service_account_file: /root/lebedevdg_microservices/docker-monolith/infra/ansible/docker-271613-bf1d38124250.json
 auth_kind: serviceaccount
 keyed_groups: null
