@@ -295,3 +295,29 @@ git push gitlab gitlab-ci-1
 eval $(docker-machine env --unset)
 # удаляем машину docker-host в GCP
 docker-machine rm docker-host
+
+
+## ДЗ №5
+
+- запущены приложение reddit и Prometheus на docker-host в GCP
+- настроен мониторинг микросервисов
+- настроен сбор метрик хоста с использованием prom/node-exporter
+- (*) настроен мониторинг MongoDB с использованием mongodb-exporter (https://github.com/percona/mongodb_exporter)
+- (*) настроен мониторинг сервисов comment, post, ui с использованием prom/blackbox-exporter
+- (*) написан Makefile для сборки и публикации образов, а также для запуска всего через docker-compose
+
+ссылки на Docker Hub с собранными образами:
+https://hub.docker.com/repository/docker/lebedevdg/ui
+https://hub.docker.com/repository/docker/lebedevdg/post
+https://hub.docker.com/repository/docker/lebedevdg/comment
+https://hub.docker.com/repository/docker/lebedevdg/prometheus
+https://hub.docker.com/repository/docker/lebedevdg/mongodb-exporter
+
+```
+# поднять docker-host в GCP, открыть порты 9090 и 9292
+# переключить docker окружение на работу с docker-host
+
+# далее из корня репозитория выполнить
+make build --directory=./monitoring
+make up --directory=./monitoring
+```

@@ -67,9 +67,8 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
 
-
   mongodb-exporter:
-    image: ${DH_USERNAME:-$USER}/percona:0.10.0
+    image: ${DH_USERNAME:-$USER}/mongodb-exporter:${MONGODB_EXPORTER_VERSION:-latest}
     command:
       - '--collect.database'
       - '--collect.collection'
@@ -79,6 +78,11 @@ services:
       - '--mongodb.uri=mongodb://mongo_db:27017'
     networks:
       - back_net
+      - front_net
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:${BLACKBOX_EXPORTER_VERSION:-v0.16.0}
+    networks:
       - front_net
 
 volumes:
