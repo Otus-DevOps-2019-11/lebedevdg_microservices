@@ -184,3 +184,114 @@ docker-compose up -d
 # создание и старт контейнеров без применения docker-compose.override.yml
 docker-compose -f docker-compose.yml up -d
 ```
+
+
+## ДЗ №4
+
+
+    подготовлена инсталляция Gitlab CI на docker-host в GCP
+    подготовлен репозиторий с кодом приложения
+    описаны для приложения этапы пайплайна и определены окружения
+    (*) на шаге build добавлена сборка образа с приложением reddit и загрузка образа на Docker Hub
+    (*) на шаге review добавлен деплой приложения на docker-host, а также добавлен job удаления динамического окружения
+    (*) написан скрипт для поднятия Gitlab CI Runner
+    (*) настроена интеграция пайплайна с каналом Slack
+
+# установка и настройка Gitlab CE
+
+# исходно на нашей управляющей машине должны стоять docker, docker-compose, docker-machine
+
+# задаем переменную со значением ID проекта в GCP
+export GOOGLE_PROJECT=<your_GCP_project_id>
+
+# поднимаем docker-host на Ubuntu в GCP
+# (на нем дальше и будем разворачивать Gitlab CE и минимум один Gitlab Runner)
+docker-machine create --driver google \
+  --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+  --google-machine-type n1-standard-1 \
+  --google-zone europe-north1-a \
+  --google-disk-size 50 \
+  docker-host
+
+# создаем firewall правило для будущего доступа к Gitlab по 80-ому порту
+gcloud compute firewall-rules create docker-machine-allow-http \
+  --allow tcp:80 \
+  --target-tags=docker-machine \
+  --description="Allow http connections" \
+  --direction=INGRESS
+
+# создаем сразу и firewall правило для будущего доступа к нашему reddit-app по порту 9292
+gcloud compute firewall-rules create reddit-app \
+  --allow tcp:9292 \
+  --target-tags=docker-machine \
+  --description="Allow PUMA connections" \
+  --direction=INGRESS
+
+# переключаем docker окружение на работу с docker-host
+eval $(docker-machine env docker-host)
+
+# выводим список docker machine
+# убеждаемся, что docker-host сейчас является активной (той, на которую переключено docker окружение),
+# а также запоминаем внешний IP-адрес docker-host
+docker-machine ls
+
+# задаем значение переменной с участием внешнего IP-адреса docker-host
+# это будет адрес, по которому будет доступен наш Gitlab
+export GITLAB_CI_URL=http://<docker-host_external_IP>
+
+# поднимаем на docker-host контейнер с Gitlab
+# docker-compose -f ./gitlab-ci/docker-compose.yml config
+docker-compose -f ./gitlab-ci/docker-compose.yml up -d
+
+# заходим в наш Gitlab по адресу http://<docker-host_external_IP> и задаем пароль пользователю root
+# затем логинимся в Gitlab под пользователем root,
+# там в Admin Area идем в Settings, там в Sign-up restrictions выключаем Sign-up enabled, делаем Save changes
+# далее в Groups создаем новую Group, например, homework, а в ней новый blank Project, например, example
+
+# затем в Project, который мы создали, в Settings -> CI / CD -> Runners находим значение registration token
+# и задаем значение переменной
+export GITLAB_CI_TOKEN=<gitlab_registration_token>
+
+# set up-им новый Gitlab Runner
+# (можно повторить этот шаг для создания нескольких runner; имя контейнера значения не имеет, лишь бы оно было уникальным)
+./gitlab-ci/set_up_runner.sh <gitlab-runner_container_name>
+# при регистрации runner были добавлены следующие опции для корректной работы Docker-in-Docker:
+#  --docker-privileged
+#  --docker-volumes "docker-certs-client:/certs/client"
+#  --env "DOCKER_TLS_CERTDIR=/certs"
+
+# состояние созданного runner можно проверить там же в Project, который мы создали, в Settings -> CI / CD -> Runners
+
+# в Project, который мы создали, в Settings -> Integrations -> Slack notifications добавляем Webhook
+# из предварительно добавленного в нужный канал Slack приложения Incoming WebHooks
+
+# в Project, который мы создали, в Settings -> CI / CD -> Variables добавляем переменные
+# DOCKER_HUB_LOGIN и DOCKER_HUB_PASSWORD (для этой включить Masked)
+# это нужно, соответственно, для загрузки собранных image на Docker Hub
+
+# на нашей управляющей машине выполняем
+docker-machine env docker-host
+# по пути DOCKER_CERT_PATH нас интересуют три файла: ca.pem, cert.pem, key.pem
+# в Project, который мы создали, в Settings -> CI / CD -> Variables добавляем переменные типа File
+# DOCKER_HOST_CA_FILE, DOCKER_HOST_CERT_FILE, DOCKER_HOST_KEY_FILE
+# со значениями, равными содержимому, соответственно, наших трех файлов: ca.pem, cert.pem, key.pem
+
+# в клоне нашего рабочего репозитория создаем какой-нибудь новый branch, например, gitlab-ci-1
+# потом добавляем в репозиторий remote на наш Gitlab
+# и пушим в наш Gitlab
+git checkout -b gitlab-ci-1
+git remote add gitlab http://<docker-host_external_IP>/<your_group>/<your_project>.git
+git push gitlab gitlab-ci-1
+
+# проверяем в нашем Gitlab состояние запустившегося pipeline в Project, который мы создали, в CI / CD -> Pipelines
+# проверяем также в нашем канале Slack, что туда приходят оповещения от нашего Gitlab
+
+# затем заходим по адресу нашего environment branch/gitlab-ci-1: http://<docker-host_external_IP>:9292
+# и убеждаемся, что наше собранное и задеплоенное приложение работает корректно
+
+
+# по окончании экпериментов с нашим Gitlab убираем за собой
+# переключаем docker окружение обратно на локальное
+eval $(docker-machine env --unset)
+# удаляем машину docker-host в GCP
+docker-machine rm docker-host
