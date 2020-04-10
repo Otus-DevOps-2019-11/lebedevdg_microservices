@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "storage-bucket-docker2-272817"
+    bucket = "storage-bucket-docker3-273507"
     prefix = "stage"
   }
 }
