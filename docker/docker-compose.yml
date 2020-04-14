@@ -38,55 +38,7 @@ services:
     depends_on:
       - mongo_db
 
-  prometheus:
-    image: ${DH_USERNAME:-$USER}/prometheus:${PROMETHEUS_VERSION:-latest}
-    networks:
-      - back_net
-      - front_net
-    ports:
-      - '9090:9090'
-    volumes:
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention=1d'
-
-  node-exporter:
-    image: prom/node-exporter:v0.15.2
-    networks:
-      - back_net
-      - front_net
-    user: root
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
-
-  mongodb-exporter:
-    image: ${DH_USERNAME:-$USER}/mongodb-exporter:${MONGODB_EXPORTER_VERSION:-latest}
-    command:
-      - '--collect.database'
-      - '--collect.collection'
-      - '--collect.topmetrics'
-      - '--collect.indexusage'
-      - '--collect.connpoolstats'
-      - '--mongodb.uri=mongodb://mongo_db:27017'
-    networks:
-      - back_net
-      - front_net
-
-  blackbox-exporter:
-    image: prom/blackbox-exporter:${BLACKBOX_EXPORTER_VERSION:-v0.16.0}
-    networks:
-      - front_net
-
 volumes:
-  prometheus_data:
   mongo_db:
 
 networks:
