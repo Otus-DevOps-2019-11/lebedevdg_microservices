@@ -66,7 +66,7 @@ services:
 
 
   grafana:
-    image: grafana/grafana:5.0.0
+    image: ${DH_USERNAME}/grafana:${GRAFANA_VERSION:-latest}
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
@@ -82,15 +82,25 @@ services:
       - front_net
 
   alertmanager:
-    image: ${USER_NAME}/alertmanager
+    image: ${DH_USERNAME}/alertmanager
     command:
       - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
     ports:
       - 9093:9093
 
     networks:
       - back_net
       - front_net
+
+  telegraf:
+    image: ${DH_USERNAME:-user}/telegraf
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - front_net
+
+
 
 volumes:
   prometheus_data:

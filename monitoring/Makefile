@@ -1,7 +1,8 @@
 APP_IMAGES := ui post comment
-MON_IMAGES := prometheus mongodb-exporter
+MON_IMAGES := prometheus mongodb-exporter alertmanager telegraf grafana
 DOCKER_COMMANDS := build push
 COMPOSE_COMMANDS := config up down
+COMPOSE_COMMANDS_MON := configmon upmon downmon
 
 ifeq '$(strip $(USER_NAME))' ''
   $(warning Variable USER_NAME is not defined, using value 'user')
@@ -29,6 +30,9 @@ endif
 $(COMPOSE_COMMANDS):
 	docker-compose --env-file $(ENV_FILE) -f ../docker/docker-compose.yml $(subst up,up -d,$@)
 
-$(APP_IMAGES) $(MON_IMAGES) $(DOCKER_COMMANDS) $(COMPOSE_COMMANDS): FORCE
+$(COMPOSE_COMMANDS_MON):
+	docker-compose --env-file $(ENV_FILE) -f ../docker/docker-compose-monitoring.yml $(subst mon,,$(subst up,up -d,$@))
+
+$(APP_IMAGES) $(MON_IMAGES) $(DOCKER_COMMANDS) $(COMPOSE_COMMANDS) $(COMPOSE_COMMANDS_MON): FORCE
 
 FORCE:
