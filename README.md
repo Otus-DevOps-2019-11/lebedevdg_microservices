@@ -390,3 +390,25 @@ http://docker-host_ip:5601
 # в Index Patterns -> Create index pattern, Index pattern = fluentd-*, Time Filter field name = @timestamp
 # далее Discover и можно смотреть полученные логи
 ```
+
+
+sergetol microservices repository
+
+# ДЗ №8
+
+- развернуты вручную компоненты Kubernetes v1.18.2, используя The Hard Way (https://github.com/kelseyhightower/kubernetes-the-hard-way)
+- созданы деплойменты для компонентов ui, post, mongo, comment; проверено, что поды запускаются
+
+```
+kubectl apply -f kubernetes/reddit
+
+kubectl get deployments
+kubectl get pods
+
+kubectl logs $(kubectl get pods -l app=comment -o jsonpath="{.items[0].metadata.name}")
+kubectl logs $(kubectl get pods -l app=mongo -o jsonpath="{.items[0].metadata.name}")
+kubectl logs $(kubectl get pods -l app=post -o jsonpath="{.items[0].metadata.name}")
+kubectl logs $(kubectl get pods -l app=ui -o jsonpath="{.items[0].metadata.name}")
+
+kubectl delete -f kubernetes/reddit
+```
