@@ -412,3 +412,63 @@ kubectl logs $(kubectl get pods -l app=ui -o jsonpath="{.items[0].metadata.name}
 
 kubectl delete -f kubernetes/reddit
 ```
+
+
+# ДЗ №9
+
+- запущен локально minikube на VirtualBox
+- написаны манифесты для развертывания в k8s компонентов приложения
+- запущено приложение в minikube
+- развернут k8s кластер в GKE вручную и на нем запущено приложение
+- (*) развернут k8s кластер в GKE с помощью Terraform и на нем запущено приложение
+- (*) добавлен деплой k8s dashboard в кластер
+
+```
+# https://kubernetes.io/docs/tasks/tools/install-minikube/
+minikube start --driver='virtualbox' --disk-size='4096mb'
+
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml
+kubectl apply -f ./kubernetes/reddit/ -n dev
+
+# kubectl get all -n dev
+minikube service ui -n dev
+
+#-----
+minikube stop
+minikube delete
+```
+
+```
+# https://www.terraform.io/docs/providers/google/r/container_cluster.html
+
+cd ./kubernetes/terraform && terraform init && terraform apply -auto-approve && cd -
+
+gcloud container clusters get-credentials <cluster_name>
+
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml
+kubectl apply -f ./kubernetes/reddit/ -n dev
+
+# kubectl get all -n dev
+kubectl get nodes -o wide
+kubectl describe service ui -n dev | grep NodePort
+
+# http://<EXTERNAL-IP>:<NodePort>
+
+#-----
+cd ./kubernetes/terraform && terraform destroy -auto-approve && cd -
+```
+
+```
+# Web UI (Dashboard)
+# https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+kubectl apply -f ./kubernetes/dashboard/dashboard-admin-user.yml
+
+# getting a Bearer Token:
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+
+kubectl proxy
+
+# http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+```

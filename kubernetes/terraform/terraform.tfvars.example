@@ -1,0 +1,12 @@
+project                = "<project_id>"
+region                 = "europe-north1"
+zone                   = "europe-north1-a"
+cluster_name           = "cluster-1"
+node_pool_name         = "node-pool-1"
+node_count             = 1
+node_machine_type      = "g1-small"
+node_disk_size_gb      = 20
+node_disk_type         = "pd-standard"
+node_tags              = ["k8s-work-node"]
+firewall_node_ports    = ["30000-32767"]
+firewall_source_ranges = ["0.0.0.0/0"]
