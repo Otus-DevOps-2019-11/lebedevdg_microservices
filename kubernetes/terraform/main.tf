@@ -27,6 +27,17 @@ resource "google_container_cluster" "my_cluster" {
       issue_client_certificate = false
     }
   }
+
+  addons_config {
+    network_policy_config {
+      disabled = false
+    }
+  }
+
+  network_policy {
+    enabled  = true
+    provider = "CALICO"
+  }
 }
 
 resource "google_container_node_pool" "my_cluster_nodes" {

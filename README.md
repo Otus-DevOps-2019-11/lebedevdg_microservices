@@ -472,3 +472,25 @@ kubectl proxy
 
 # http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
 ```
+
+# ДЗ №10
+
+
+- изучили LoadBalancer Service, Ingress, Secret (* TLS), NetworkPolicy, PersistentVolume, PersistentVolumeClaim, StorageClass
+
+```
+cd ./kubernetes/terraform && terraform init && terraform apply -auto-approve && cd -
+
+gcloud container clusters get-credentials <cluster_name>
+
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml
+kubectl apply -f ./kubernetes/reddit/ -n dev
+
+# kubectl get all -n dev
+kubectl get ingress -n dev
+
+# https://<EXTERNAL-IP-ADDRESS>
+
+#-----
+cd ./kubernetes/terraform && terraform destroy -auto-approve && cd -
+```
