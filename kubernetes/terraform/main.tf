@@ -19,6 +19,9 @@ resource "google_container_cluster" "my_cluster" {
   min_master_version = data.google_container_engine_versions.gke_versions.latest_master_version
   network            = "default"
 
+  logging_service    = var.logging_service
+  monitoring_service = var.monitoring_service
+
   # When enabled, identities in the system, including service accounts, nodes, and controllers,
   # will have statically granted permissions beyond those provided by the RBAC configuration or IAM
   enable_legacy_abac = var.enable_legacy_abac

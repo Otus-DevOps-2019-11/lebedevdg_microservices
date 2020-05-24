@@ -27,6 +27,18 @@ variable "enable_legacy_abac" {
   default     = false
 }
 
+variable "logging_service" {
+  type        = string
+  description = "Available options include logging.googleapis.com (Legacy Stackdriver), logging.googleapis.com/kubernetes (Stackdriver Kubernetes Engine Logging), and none"
+  default     = "logging.googleapis.com/kubernetes"
+}
+
+variable "monitoring_service" {
+  type        = string
+  description = "Available options include monitoring.googleapis.com (Legacy Stackdriver), monitoring.googleapis.com/kubernetes (Stackdriver Kubernetes Engine Monitoring), and none"
+  default     = "monitoring.googleapis.com/kubernetes"
+}
+
 variable "node_pool_name" {
   type        = string
   description = "K8s cluster node pool name"
