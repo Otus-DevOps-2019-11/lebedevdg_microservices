@@ -362,3 +362,31 @@ docker-machine ssh docker-host
 # перезапустить docker
 sudo systemctl restart docker
 ```
+
+
+## ДЗ №7
+
+- установлен и настроен стек EFK
+- во Fluentd задействованы плагины fluent-plugin-elasticsearch и fluent-plugin-grok-parser
+- рассмотрен сбор через fluentd docker драйвер структурированных логов (json) на примере сервиса post
+- настроен фильтр парсинга во Fluentd приходящих json-логов от сервиса post
+- рассмотрен сбор через fluentd docker драйвер неструктурированных логов на примере сервиса ui
+- настроен фильтр во Fluentd парсинга логов ((*) двух форматов) сервиса ui с помощью grok-шаблонов
+- добавлен сервис распределенного трейсинга Zipkin
+- (*) при работе со "сломанным" приложением с помощью Zipkin удалось понять, что задержка при открытии любого поста происходит в сервисе post при обработке запроса /post/-id-;<br/>далее по коду сервиса post в find_post был найден вызов time.sleep(3), что и было причиной задержки
+- для логов сервиса ui настроен также парсинг json-данных поля params
+- настроен также сбор через fluentd docker драйвер неструктурированных логов сервиса comment
+- с помощью плагина fluent-plugin-concat настроена склейка многострочных логов сервиса comment, а затем выполнен парсинг аналогично логам сервиса ui
+
+ссылки на Docker Hub с новыми собранными образами:
+https://hub.docker.com/repository/docker/lebedevdg/ui
+https://hub.docker.com/repository/docker/lebedevdg/post
+https://hub.docker.com/repository/docker/lebedevdg/comment
+https://hub.docker.com/repository/docker/lebedevdg/fluentd
+```
+
+# Kibana
+http://docker-host_ip:5601
+# в Index Patterns -> Create index pattern, Index pattern = fluentd-*, Time Filter field name = @timestamp
+# далее Discover и можно смотреть полученные логи
+```
