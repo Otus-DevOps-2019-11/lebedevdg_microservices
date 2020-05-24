@@ -1,0 +1,16 @@
+---
+service:
+  internalPort: 9292
+  externalPort: 9292
+
+image:
+  repository: lebedevdg/ui
+  tag: logging
+
+ingress:
+  class: gce
+
+postHost:
+postPort:
+commentHost:
+commentPort:
