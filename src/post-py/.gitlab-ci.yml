@@ -5,6 +5,7 @@ stages:
   - build
   - test
   - review
+  - trigger_deploy
   - release
   - cleanup
 
@@ -41,12 +42,23 @@ release:
   only:
     - master
 
+trigger_deploy:
+  stage: trigger_deploy
+  only:
+    - master
+  before_script:
+    - apk add -U curl
+  script:
+    - >
+      curl --request POST \
+           --form token=$REDDIT_DEPLOY_TRIGGER_TOKEN \
+           --form ref=master \
+           http://gitlab-gitlab/api/v4/projects/$REDDIT_DEPLOY_PROJECT_ID/trigger/pipeline
 review:
   stage: review
   script:
     - install_dependencies
     - ensure_namespace
-    - install_helm_tiller_plugin
     - deploy
   variables:
     KUBE_NAMESPACE: review
@@ -66,9 +78,9 @@ stop_review:
   stage: cleanup
   variables:
     GIT_STRATEGY: none
+    KUBE_NAMESPACE: review
   script:
     - install_dependencies
-    - install_helm_tiller_plugin
     - delete
   environment:
     name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
@@ -88,7 +100,6 @@ stop_review:
   export CI_APPLICATION_REPOSITORY=$CI_REGISTRY/$CI_PROJECT_PATH
   export CI_APPLICATION_TAG=$CI_COMMIT_REF_SLUG
   export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
-  export TILLER_NAMESPACE="kube-system"
 
   function deploy() {
     track="${1-stable}"
@@ -105,9 +116,7 @@ stop_review:
     helm dep update reddit-deploy/reddit
 
     echo "Deploy helm release $name to $KUBE_NAMESPACE"
-    echo "Upgrading existing release..."
-    echo "helm tiller run -- helm upgrade --install --wait --set ui.ingress.host="$host" --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit-deploy/reddit/"
-    helm tiller run -- helm upgrade --install \
+    helm upgrade --install \
       --wait \
       --set ui.ingress.host="$host" \
       --set $CI_PROJECT_NAME.image.tag=$CI_APPLICATION_TAG \
@@ -128,11 +137,11 @@ stop_review:
     curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME
     export PATH=${PATH}:$HOME/gsutil
 
-    # curl https://kubernetes-helm.storage.googleapis.com/helm-v2.13.1-linux-amd64.tar.gz | tar zx
-    curl https://get.helm.sh/helm-v2.16.7-linux-amd64.tar.gz | tar zx
+    # using helm3
+    curl https://get.helm.sh/helm-v3.2.1-linux-amd64.tar.gz | tar zx
 
     mv linux-amd64/helm /usr/bin/
-    helm version --client
+    helm version
 
     curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh
     chmod a+x /usr/bin/sync-repo.sh
@@ -188,21 +197,10 @@ stop_review:
     echo ""
   }
 
-  function install_helm_tiller_plugin() {
-    echo "Installing helm-tiller plugin..."
-    helm init --client-only
-    helm plugin install https://github.com/rimusz/helm-tiller || true
-    if ! helm tiller run -- helm version --debug; then
-      echo "Failed to init helm-tiller plugin."
-      return 1
-    fi
-    echo ""
-  }
-
   function delete() {
     track="${1-stable}"
     name="$CI_ENVIRONMENT_SLUG"
-    helm tiller run -- helm delete "$name" --purge || true
+    helm uninstall "$name" --namespace="$KUBE_NAMESPACE" || true
   }
 
 before_script:

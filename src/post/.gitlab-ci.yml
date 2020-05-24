@@ -5,6 +5,7 @@ stages:
   - build
   - test
   - review
+  - trigger_deploy
   - release
   - cleanup
 
@@ -41,6 +42,18 @@ release:
   only:
     - master
 
+trigger_deploy:
+  stage: trigger_deploy
+  only:
+    - master
+  before_script:
+    - apk add -U curl
+  script:
+    - >
+      curl --request POST \
+           --form token=$REDDIT_DEPLOY_TRIGGER_TOKEN \
+           --form ref=master \
+           http://gitlab-gitlab/api/v4/projects/$REDDIT_DEPLOY_PROJECT_ID/trigger/pipeline
 review:
   stage: review
   script:
