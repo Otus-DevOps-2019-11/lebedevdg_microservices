@@ -1,0 +1,7 @@
+name: efk
+version: 1.0.0
+description: EFK stack
+maintainers:
+  - name: Denis L
+    email: lebedevdg@ekassir.com
+appVersion: 1.0

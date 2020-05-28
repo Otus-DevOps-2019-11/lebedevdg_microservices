@@ -558,3 +558,20 @@ helm3 uninstall gitlab
 
 cd ./kubernetes/terraform && terraform destroy -auto-approve && cd -
 ```
+
+# ДЗ №11
+
+
+Установлен Prometheus с помощью helm chart'а.
+Настроены сборки метрик с приложений для Prometheus.
+Установлена Grafana.
+Настроены графики для различных пространств и разверток с использованием variables (dashboard'ы приведены в kubernetes/Grafana_dashboard).
+Установлен Elasticksearch с Kibana.
+
+Для запуска prometheus с помощью созданного helm chart'а, выполните - `helm upgrade prom kubernetes/Charts/prometheus/ -f kubernetes/Charts/prometheus/custom_values.yml --install`
+
+Для запуска grafana с помощью созданного helm chart'а, выполните - `helm upgrade grafana kubernetes/Charts/grafana/ -f kubernetes/Charts/grafana/custom_values.yaml --install`
+
+Для получения пароля от пользователя admin, выполните - `kubectl get secret --namespace defau$
+
+Для запуска elasticsearch и kibana c помощью созданного helm chart'а, выполните - `helm upgrade kibana kubernetes/Charts/efk -f kubernetes/Charts/efk/values.yaml --install`
