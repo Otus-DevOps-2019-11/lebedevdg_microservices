@@ -494,3 +494,67 @@ kubectl get ingress -n dev
 #-----
 cd ./kubernetes/terraform && terraform destroy -auto-approve && cd -
 ```
+
+# ДЗ №10
+
+- изучена работа с helm2, helm2 tiller plugin, helm3
+- созданы helm чарты для развертывания приложения в k8s
+- развернут Gitlab CI в k8s
+- написаны CI/CD пайплайны для сборки docker образов компонентов приложения и пайплайн развертывания приложения в k8s
+
+  - пайплайн компоненты ui сделан без auto_devops и использует для деплоя helm2
+  - пайплайн comment использует для деплоя helm2 вместе с helm-tiller plugin (https://github.com/rimusz/helm-tiller)
+  - пайплайн post использует для деплоя helm3
+  - пайплайн reddit-deploy сделан без auto_devops и использует helm3
+  - (*) в пайплайны ui, post, comment добавлен стэйдж trigger_deploy, выполняющий запуск пайплайна reddit-deploy (POST request to GitLab API endpoint)
+
+```
+cd ./kubernetes/terraform && terraform init && terraform apply -auto-approve && cd -
+
+gcloud container clusters get-credentials <cluster_name>
+
+# install Gitlab CI in k8s
+helm3 install gitlab ./kubernetes/Charts/gitlab-omnibus/ -f ./kubernetes/Charts/gitlab-omnibus/values.yaml
+
+# watch the status with:
+kubectl get svc -w --namespace nginx-ingress nginx
+# then:
+echo "$(kubectl get svc --namespace nginx-ingress nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}') gitlab-gitlab staging production" >> /etc/hosts
+
+# http://gitlab-gitlab
+# set password for root, then sign in
+# follow Admin Area -> Settings, Sign-up restrictions, disable Sign-up enabled, Save
+# follow Groups -> New group, in Group path add your DockerHub login, make group Public, disable Create a Mattermost team for this group
+# in the group follow Settings -> CI / CD, add CI_REGISTRY_USER and CI_REGISTRY_PASSWORD variables with your DockerHub login and password
+
+# in the group make New project with Project name 'reddit-deploy', make it Public
+# add to group more public projects: comment, post, ui
+
+# in the 'reddit-deploy' project follow Settings -> CI / CD, Pipeline triggers, Add trigger, copy trigger token and remember project_id
+# in the group follow Settings -> CI / CD, add REDDIT_DEPLOY_TRIGGER_TOKEN and REDDIT_DEPLOY_PROJECT_ID variables with your trigger token and project_id
+# for example:
+# REDDIT_DEPLOY_TRIGGER_TOKEN = ef798205940eed3d02575213cb1298
+# REDDIT_DEPLOY_PROJECT_ID = 1
+
+# push component's sorce code and helm charts to the appropriate gitlab project
+
+# check pipeline statuses and environments
+
+# helm ls --all
+# helm3 ls --all --namespace review
+# helm3 ls --all --namespace=staging
+# helm3 ls --all --namespace=production
+
+#-----
+# in gitlab stop all review environments
+helm3 uninstall staging --namespace=staging
+helm3 uninstall production --namespace=production
+
+kubectl delete ns review
+kubectl delete ns staging
+kubectl delete ns production
+
+helm3 uninstall gitlab
+
+cd ./kubernetes/terraform && terraform destroy -auto-approve && cd -
+```

@@ -1,0 +1,15 @@
+dependencies:
+- name: ui
+  repository: file://../ui
+  version: 1.0.0
+- name: post
+  repository: file://../post
+  version: 1.0.0
+- name: comment
+  repository: file://../comment
+  version: 1.0.0
+- name: mongodb
+  repository: file://../mongodb
+  version: 1.0.0
+digest: sha256:482c57a44c584df0424ba728c0f9b16143651cb4df1de93120981f779745b5d5
+generated: "2020-05-23T21:44:35.070213688+03:00"

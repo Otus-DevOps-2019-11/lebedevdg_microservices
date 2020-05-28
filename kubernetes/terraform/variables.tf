@@ -21,6 +21,12 @@ variable "cluster_name" {
   default     = "cluster-1"
 }
 
+variable "enable_legacy_abac" {
+  type        = bool
+  description = "Whether the ABAC authorizer is enabled for this k8s cluster"
+  default     = false
+}
+
 variable "node_pool_name" {
   type        = string
   description = "K8s cluster node pool name"
@@ -67,4 +73,10 @@ variable "firewall_source_ranges" {
   type        = list(string)
   description = "Firewall source ranges"
   default     = ["0.0.0.0/0"]
+}
+
+variable "firewall_rule_disabled" {
+  type        = bool
+  description = "Denotes whether the firewall rule is disabled, i.e. not applied to the network it is associated with"
+  default     = false
 }
